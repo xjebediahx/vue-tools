@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "vue-tools.helloWorld",
-        "title": "Hello World"
+        "command": "vue-tools.extractComponent",
+        "title": "Vue Tools: Extract component"
       }
     ]
   },
