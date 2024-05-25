@@ -24,8 +24,8 @@ export class EditorFunctions {
     public static getScriptContent(): string | undefined {
         const content = EditorFunctions.getFileContent();
         const scriptPattern = /<script>(.|\n)*<\/script>/mgi;
-
         const match = content?.match(scriptPattern);
+
         if (!match) {
             return;
         }
@@ -37,16 +37,66 @@ export class EditorFunctions {
         return vscode.window.activeTextEditor?.document.getText();
     }
 
-    static addToComponents(scriptContent: string, componentName: string): void {
-        // find components in script
-        const componentsPattern = /components: *{((.|\n)*?)}/g;
-        const componentsMatch = scriptContent.match(componentsPattern);
+    static getPositionOfMatch(regex: RegExp, positionAtEnd: boolean = false): vscode.Position | undefined {
+        const editor = vscode.window.activeTextEditor;
 
-        if (!componentsMatch) {
-            // add new components declaration
+        if (!editor) {
+            return;
+        }
+        
+        const document = editor.document;
+        const text = document.getText();
+        const match = regex.exec(text);
 
+        if (match) {
+            return positionAtEnd ? document.positionAt(match.index + match[0].length) : document.positionAt(match.index);
+        }
+    }
+
+    static getIndentString(): string | undefined {
+        const editor = vscode.window.activeTextEditor;
+
+        if (!editor) {
             return;
         }
 
+        const document = editor.document;
+        const options = editor.options;
+
+        // Ermitteln, ob die Einrückung mit Tabs oder Leerzeichen erfolgt
+        const insertSpaces = options.insertSpaces as boolean;
+
+        // Ermitteln der Tab-Breite
+        const tabSize = options.tabSize as number;
+
+        // Einrückungsstring basierend auf den Einstellungen erstellen
+        return insertSpaces ? ' '.repeat(tabSize) : '\t';
     }
+
+    static async insertText(text: string, position?: vscode.Position): Promise<void> {
+        const editor = vscode.window.activeTextEditor;
+
+        if (editor) {
+            const selection = editor.selection;
+
+            await editor.edit(editBuilder => {
+                if (position) {
+                    editBuilder.insert(position, text);
+                } else {
+                    editBuilder.insert(selection.active, text);
+                }
+            });
+        }
+    }
+
+    static async deleteSelection(): Promise<void> {
+        const editor = vscode.window.activeTextEditor;
+
+        if (editor) {
+            await editor.edit(editBuilder => {
+                editBuilder.delete(editor.selection);
+            });
+        }
+    }
+
 }

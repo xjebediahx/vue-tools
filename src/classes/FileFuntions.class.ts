@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import template from '../templates/compnentTemplate';
+import { VueFunctions } from './VueFunctions.class';
 
 export class FileFunctions {
     static readFile(path: string): string {
@@ -31,12 +32,11 @@ export class FileFunctions {
     static createNewComponentFile(componentPath: string, content: string): void {
         const currentPath = FileFunctions.getCurrentPath();
         const fullPath = currentPath + '/' + componentPath;
-        const componentPathParts = componentPath.split('/');
-        const componentName = componentPathParts[ componentPathParts.length - 1 ].replace('.vue', '');
+        const componentName = VueFunctions.getComponentNameFromComponentPath(componentPath);
         
         let componentContent = template.replace('###HTML###', content);
         componentContent = componentContent.replace('###COMPONENT_NAME###', componentName);
-        componentContent = componentContent.replace('###CSS_CLASS###', componentName.replace(/([a-z])([A-Z])/g, '$1-$2' ).toLowerCase());
+        componentContent = componentContent.replace('###CSS_CLASS###', VueFunctions.getTagName(componentName));
 
         FileFunctions.saveFile(fullPath, componentContent);
     }

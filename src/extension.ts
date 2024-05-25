@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import { EditorFunctions } from './classes/EditorFunctions.class';
 import { FileFunctions } from './classes/FileFuntions.class';
+import { VueFunctions } from './classes/VueFunctions.class';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -45,6 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (newComponentPath) {
 			FileFunctions.createNewComponentFile(newComponentPath, selectedText);
+			VueFunctions.addImport(newComponentPath);
 			// vscode.window.showInformationMessage(newComponentPath);
 		}
 	});
