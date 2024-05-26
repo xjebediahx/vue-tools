@@ -5,6 +5,8 @@ import { EditorFunctions } from './classes/EditorFunctions.class';
 import { FileFunctions } from './classes/FileFuntions.class';
 import { VueFunctions } from './classes/VueFunctions.class';
 
+const EXTENSION_MESSAGE_PREFIX = 'Vue Tools';
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -19,14 +21,14 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand('vue-tools.extractComponent', async () => {
 		// check if Vue file
 		if (vscode.window.activeTextEditor?.document.languageId !== 'vue') {
-			vscode.window.showInformationMessage('Vue Tools: This works only on Vue files');
+			vscode.window.showInformationMessage(`${EXTENSION_MESSAGE_PREFIX}: This works only on Vue files`);
 			return;
 		}
 
 		// check if file has script tag and return script content
 		const scriptContent = EditorFunctions.getScriptContent();
 		if (!scriptContent) {
-			vscode.window.showInformationMessage('Vue Tools: File has no script tag');
+			vscode.window.showInformationMessage(`${EXTENSION_MESSAGE_PREFIX}: File has no script tag`);
 			return;
 		}
 
@@ -34,7 +36,26 @@ export function activate(context: vscode.ExtensionContext) {
 		
 		// check if anything selected
 		if (!selectedText) {
-			vscode.window.showInformationMessage('Vue Tools: No text selected, ' + vscode.window.activeTextEditor?.document.uri );
+			vscode.window.showInformationMessage(`${EXTENSION_MESSAGE_PREFIX}: No text selected`);
+			return;
+		}
+
+		// check if template  exists
+		const templateStartPosition = EditorFunctions.getPositionOfMatch(/<template>/g, true); // begin at end of template opening tag
+		const templateEndPosition = EditorFunctions.getPositionOfMatch(/<\/template>/g); // end at beginning of template closing tag
+
+		if (!templateStartPosition || !templateEndPosition) {
+			vscode.window.showInformationMessage(`${EXTENSION_MESSAGE_PREFIX}: No temnplate found in file`);
+			return;
+		}
+
+		// check if selection in template
+		const selection = vscode.window.activeTextEditor?.selection;
+
+		if (
+			selection &&
+			(selection.start.line <= templateStartPosition?.line || selection.end.line >= templateEndPosition?.line)) {
+			vscode.window.showInformationMessage(`${EXTENSION_MESSAGE_PREFIX}: Selection is not in template`);
 			return;
 		}
 
@@ -47,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (newComponentPath) {
 			FileFunctions.createNewComponentFile(newComponentPath, selectedText);
 			VueFunctions.addImport(newComponentPath);
-			// vscode.window.showInformationMessage(newComponentPath);
+			vscode.window.showInformationMessage(`${EXTENSION_MESSAGE_PREFIX}:  New component ` + newComponentPath);
 		}
 	});
 
