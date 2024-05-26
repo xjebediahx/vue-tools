@@ -1,5 +1,22 @@
 import { EditorFunctions } from "./EditorFunctions.class";
 
+enum VueMemberType {
+    Prop = 'prop',
+    Computed = 'computed',
+    Method = 'method',
+    Ignore = 'ignore'
+}
+
+enum PredictedType {
+    String = 'string',
+    Object = 'object'
+}
+
+interface VariableCandidate {
+    name: string;
+    memberType: VueMemberType;
+    predictedType: PredictedType;
+}
 
 export class VueFunctions {
     static getTagName(componentName: string): string {
@@ -22,6 +39,35 @@ export class VueFunctions {
             await VueFunctions.addToTemplate(componentName);
             
         }
+    }
+
+    static checkForVariables(newComponentHTML: string): VariableCandidate[] {
+        const dataBindingPattern = /:[a-zA-Z-]+="([a-zA-Z]+)(\.[a-zA-Z]+)?"/gm;
+        const simpleHandlerPattern = /@[a-zA-Z-]+="([[a-zA-Z]+)"/gm;
+        // const arrowFuncHandlerPattern = /@[a-zA-Z-]+="[a-zA-Z()]+ => ((.|\n)*?)"/gm;
+
+        const result: VariableCandidate[] = [];
+        let match;
+
+        // check for possible props or computed's
+        while(match = dataBindingPattern.exec(newComponentHTML)) {
+            result.push({
+                name: match[1],
+                memberType: VueMemberType.Prop,
+                predictedType: match[2] ? PredictedType.Object : PredictedType.String
+            });
+        }
+
+        // check for possible methods
+        while(match = simpleHandlerPattern.exec(newComponentHTML)) {
+            result.push({
+                name: match[1],
+                memberType: VueMemberType.Method,
+                predictedType: match[2] ? PredictedType.Object : PredictedType.String
+            });
+        }
+
+        return result;
     }
 
     private static async addToComponents(componentName: string): Promise<void> {

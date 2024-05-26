@@ -59,6 +59,8 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
+		const possibleVariables = VueFunctions.checkForVariables(selectedText);
+
 		const inputBoxOptions: vscode.InputBoxOptions = {
 			title: 'Directory / Component'
 		};
