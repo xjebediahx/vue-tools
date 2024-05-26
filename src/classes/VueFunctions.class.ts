@@ -19,7 +19,6 @@ export class VueFunctions {
         if (scriptTagEndPosition) {
             await EditorFunctions.insertText(`import ${componentName} from './${componentPath}';\n`, scriptTagEndPosition);
             await VueFunctions.addToComponents(componentName);
-            // await EditorFunctions.deleteSelection();
             await VueFunctions.addToTemplate(componentName);
             
         }
@@ -27,21 +26,20 @@ export class VueFunctions {
 
     private static async addToComponents(componentName: string): Promise<void> {
         const componentsPosition = EditorFunctions.getPositionOfMatch(/components: ?{\n?/gm, true);
-        let indent: string = '';
+        const indent: string = (EditorFunctions.getIndentString() ?? '');
 
         if (componentsPosition) {
-            indent = (EditorFunctions.getIndentString() ?? '');
-            EditorFunctions.insertText(`${indent}${componentName},\n`, componentsPosition);
+            await EditorFunctions.insertText(`${indent}${indent}${componentName},\n`, componentsPosition);
         } else {
             // there is no components object yet
             let insertComponentsPosition = EditorFunctions.getPositionOfMatch(/name: ?['"].+['"],\n/gm, true); // look for name declaration to insert behind
 
             if (!insertComponentsPosition) {
-                insertComponentsPosition = EditorFunctions.getPositionOfMatch(/props: ?{\n?/gm); // look for props declaration to insert beforehand
+                insertComponentsPosition = EditorFunctions.getPositionOfMatch(/props: ?{\n?/gm); // look for props declaration to insert before
             }
 
             if (insertComponentsPosition) {
-                await EditorFunctions.insertText(`\ncomponents: {\n${componentName}\n},\n\n`, insertComponentsPosition);
+                await EditorFunctions.insertText(`\n${indent}components: {\n${indent}${indent}${componentName}\n${indent}},\n\n`, insertComponentsPosition);
             }
         }
     }
