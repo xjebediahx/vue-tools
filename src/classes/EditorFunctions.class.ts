@@ -83,9 +83,11 @@ export class EditorFunctions {
                 if (position) {
                     editBuilder.insert(position, text);
                 } else {
-                    editBuilder.insert(selection.active, text);
+                    editBuilder.replace(selection, text);
                 }
             });
+
+            
         }
     }
 

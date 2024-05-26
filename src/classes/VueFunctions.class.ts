@@ -19,7 +19,7 @@ export class VueFunctions {
         if (scriptTagEndPosition) {
             await EditorFunctions.insertText(`import ${componentName} from './${componentPath}';\n`, scriptTagEndPosition);
             await VueFunctions.addToComponents(componentName);
-            await EditorFunctions.deleteSelection();
+            // await EditorFunctions.deleteSelection();
             await VueFunctions.addToTemplate(componentName);
             
         }
