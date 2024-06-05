@@ -3,7 +3,8 @@
 import * as vscode from 'vscode';
 import { EditorFunctions } from './classes/EditorFunctions.class';
 import { FileFunctions } from './classes/FileFuntions.class';
-import { VueFunctions } from './classes/VueFunctions.class';
+import { VariableCandidate, VueFunctions } from './classes/VueFunctions.class';
+import { DialogHelpers } from './classes/DialogHelpers';
 
 const EXTENSION_MESSAGE_PREFIX = 'Vue Tools';
 
@@ -43,7 +44,6 @@ export function activate(context: vscode.ExtensionContext) {
 		// check if template  exists
 		const templateStartPosition = EditorFunctions.getPositionOfMatch(/<template>/g, true); // begin at end of template opening tag
 		const templateEndPosition = EditorFunctions.getPositionOfMatch(/<\/template>/g); // end at beginning of template closing tag
-
 		if (!templateStartPosition || !templateEndPosition) {
 			vscode.window.showInformationMessage(`${EXTENSION_MESSAGE_PREFIX}: No temnplate found in file`);
 			return;
@@ -51,7 +51,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// check if selection in template
 		const selection = vscode.window.activeTextEditor?.selection;
-
 		if (
 			selection &&
 			(selection.start.line <= templateStartPosition?.line || selection.end.line >= templateEndPosition?.line)) {
@@ -59,16 +58,34 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		const possibleVariables = VueFunctions.checkForVariables(selectedText);
-
+		// Get the releative path for new component
 		const inputBoxOptions: vscode.InputBoxOptions = {
-			title: 'Directory / Component'
+			title: 'Directory / Component',
+			validateInput: (value) => {
+				if (value.trim() === '') {
+					return 'Component name must not be empty';
+				}
+				return '';
+			}
 		};
-
 		const newComponentPath = await vscode.window.showInputBox(inputBoxOptions);
 
+		// Get the possible component variables (props, computed, methods etc.)
+		const possibleVariables = VueFunctions.checkForVariables(selectedText);
+		let variables: VariableCandidate[] = [];
+		const variableOptions: vscode.QuickPickItem[] = possibleVariables.map(variable => {
+			return {
+				label: variable.name,
+				description: `Created as: ${variable.memberType}, Type: ${variable.predictedType}`,
+			};
+		});
+		if (possibleVariables.length > 0) {
+			const variableSelection = await vscode.window.showQuickPick(variableOptions, { canPickMany: true });
+			variables = possibleVariables.filter( variable => variableSelection?.some(selectedVariable => selectedVariable.label === variable.name) );
+		}
+
 		if (newComponentPath) {
-			FileFunctions.createNewComponentFile(newComponentPath, selectedText);
+			FileFunctions.createNewComponentFile(newComponentPath, selectedText, variables);
 			VueFunctions.addImport(newComponentPath);
 			vscode.window.showInformationMessage(`${EXTENSION_MESSAGE_PREFIX}:  New component ` + newComponentPath);
 		}

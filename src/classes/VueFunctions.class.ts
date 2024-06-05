@@ -1,18 +1,17 @@
 import { EditorFunctions } from "./EditorFunctions.class";
 
-enum VueMemberType {
+export enum VueMemberType {
     Prop = 'prop',
-    Computed = 'computed',
+    // Computed = 'computed',
     Method = 'method',
-    Ignore = 'ignore'
 }
 
 enum PredictedType {
-    String = 'string',
-    Object = 'object'
+    String = 'String',
+    Object = 'Object'
 }
 
-interface VariableCandidate {
+export interface VariableCandidate {
     name: string;
     memberType: VueMemberType;
     predictedType: PredictedType;
@@ -68,6 +67,29 @@ export class VueFunctions {
         }
 
         return result;
+    }
+
+    static createVariableObjectString(variables: VariableCandidate[], memberType: VueMemberType): string {
+        let prefix = '';
+        let content = '';
+
+        switch(memberType) {
+            case VueMemberType.Prop:
+                prefix = 'props';
+                content = variables.filter(variable => variable.memberType === memberType).reduce((text, variable) => {
+                    return text + `\t\t${variable.name}: ${variable.predictedType},\n`;
+                }, '');
+                break;
+
+            case VueMemberType.Method:
+                prefix = 'methods';
+                content = variables.filter(variable => variable.memberType === memberType).reduce((text, variable) => {
+                    return text + `\t\t${variable.name}(): void {},\n\n`;
+                }, '');
+                break;
+        }
+
+        return content ? `\t${prefix}: {${content}\t},\n\n` : '';
     }
 
     private static async addToComponents(componentName: string): Promise<void> {
