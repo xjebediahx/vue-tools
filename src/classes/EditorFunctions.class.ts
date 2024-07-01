@@ -73,6 +73,20 @@ export class EditorFunctions {
         return insertSpaces ? ' '.repeat(tabSize) : '\t';
     }
 
+    static getIndentation(): number {
+        const editor = vscode.window.activeTextEditor;
+
+        if (!editor) {
+            return 0;
+        }
+
+        const position = editor.selection.active;
+        const line = editor.document.lineAt(position.line);
+
+        // Ermitteln der Einrückung durch Zählen der führenden Leerzeichen oder Tabs
+        return line.text.match(/^\s*/)?.[0].length || 0;
+    }
+
     static async insertText(text: string, position?: vscode.Position): Promise<void> {
         const editor = vscode.window.activeTextEditor;
 

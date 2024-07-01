@@ -28,14 +28,14 @@ export class VueFunctions {
         return componentPathParts[ componentPathParts.length - 1 ].replace('.vue', '');
     }
 
-    static async addImport(componentPath: string): Promise<void> {
+    static async addImport(componentPath: string, variables: VariableCandidate[]): Promise<void> {
         const scriptTagEndPosition = EditorFunctions.getPositionOfMatch(/<script>\n/g, true);
         const componentName = VueFunctions.getComponentNameFromComponentPath(componentPath);
 
         if (scriptTagEndPosition) {
             await EditorFunctions.insertText(`import ${componentName} from './${componentPath}';\n`, scriptTagEndPosition);
             await VueFunctions.addToComponents(componentName);
-            await VueFunctions.addToTemplate(componentName);
+            await VueFunctions.addToTemplate(componentName, variables);
             
         }
     }
@@ -112,9 +112,19 @@ export class VueFunctions {
         }
     }
 
-    private static async addToTemplate(componentName: string): Promise<void> {
+    private static async addToTemplate(componentName: string, variables: VariableCandidate[]): Promise<void> {
         const tagName = VueFunctions.getTagName(componentName);
-        await EditorFunctions.insertText(`<${tagName} />\n`);
+        const indentString = EditorFunctions.getIndentString();
+        const initialIndent = EditorFunctions.getIndentation();
+        let variablesString = '';
+
+        if (variables.length && variables.length > 0) {
+            variablesString = variables.reduce((templateString, variable) => {
+                return templateString += `\n${indentString}${indentString}:${variable.name}="${variable.name}"`;
+            }, '');
+        }
+
+        await EditorFunctions.insertText(`<${tagName}${variablesString} />\n`);
     }
 
 }

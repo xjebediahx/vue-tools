@@ -11,12 +11,13 @@ export class FileFunctions {
 
     static saveFile(filePath: string, content: string): void {
         const baseDirectory = path.dirname(filePath);
+        const extension = filePath.match(/\.vue$/g) ? '' : '.vue';
 
         if (!fs.existsSync(baseDirectory)) {
             fs.mkdirSync(baseDirectory, { recursive: true });
         }
         
-        fs.writeFileSync(filePath, content, 'utf-8');
+        fs.writeFileSync(filePath + extension, content, 'utf-8');
     }
 
     static getCurrentPath(): string {

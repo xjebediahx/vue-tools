@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { EditorFunctions } from './classes/EditorFunctions.class';
 import { FileFunctions } from './classes/FileFuntions.class';
 import { VariableCandidate, VueFunctions } from './classes/VueFunctions.class';
-import { DialogHelpers } from './classes/DialogHelpers';
+import { DialogHelpers } from './classes/DialogHelpers.class';
 
 const EXTENSION_MESSAGE_PREFIX = 'Vue Tools';
 
@@ -86,7 +86,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (newComponentPath) {
 			FileFunctions.createNewComponentFile(newComponentPath, selectedText, variables);
-			VueFunctions.addImport(newComponentPath);
+			VueFunctions.addImport(newComponentPath, variables);
 			vscode.window.showInformationMessage(`${EXTENSION_MESSAGE_PREFIX}:  New component ` + newComponentPath);
 		}
 	});
